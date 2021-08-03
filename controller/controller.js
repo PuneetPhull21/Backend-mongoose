@@ -113,8 +113,8 @@ module.exports.deleteuser = (req, res) => {
 
 module.exports.chatroom = async (req, res) => {
     try{
-  const name = req.body.name;
-  const chatroomexsist = await Chatroom.findOne({ name });
+  const chatroom_name = req.body.chatroom_name;
+  const chatroomexsist = await Chatroom.findOne({ chatroom_name });
   if (chatroomexsist){
      return res.status(401).send({
           status:401,
@@ -122,7 +122,7 @@ module.exports.chatroom = async (req, res) => {
       })
   }
   const chatname = new Chatroom({
-    name,
+    chatroom_name,
   });
 
   chatname.save().then((data) => {
@@ -142,17 +142,18 @@ catch(error){
 }
 };
 
-module.exports.allchatroom = async (req, res) => {
+module.exports.allchatrooms = async(req, res) => {
   try {
-    const allchatroom = await Chatroom.find();
+    const details = await Chatroom.find({});
     return res.status(200).send({
       status: 200,
       message: "all the chatroom",
-      data: allchatroom,
+      data:details,
     });
-  } catch (error) {
+  }
+  catch (error) {
     return res.status(400).send({
-      status: 400,
+      status: 00,
       err: error,
     });
   }
@@ -180,14 +181,24 @@ module.exports.deletechatroom = async (req, res) => {
 //login  api 
 exports.userlogin = async (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
-      if (err) res.status(404).json(err);
+      if (err) res.status(404).json({
+        status:400,
+          success:false,
+          err:err,
+      });
       if (user)
         return res.status(200).json({
+          status:200,
+          success:true,
           token: jwt.sign({ id: user.id }, "SECRETKEY007", {
             expiresIn: "60m",
           })
         });
-      if (info) return res.status(401).json(info);
+      if (info) return res.status(401).json({
+        status:401,
+          success:false,
+          err:info,
+      });
     })(req, res, next);
   };
 

@@ -12,6 +12,10 @@ require('./model/Chatroom');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+var corsOptions = {
+  origin: "*",
+}
+
 var app = express();
 
 // view engine setup
@@ -23,6 +27,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+const cors = require("cors");
+app.use(cors(corsOptions));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

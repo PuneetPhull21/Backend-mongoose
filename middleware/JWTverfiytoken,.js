@@ -18,6 +18,7 @@ module.exports.verfiytoken =  (req,res,next)=>{
                 }
                 else{
                     id = jwt.decode(token);
+                    console.log(id);
                    next();
                     
                 }

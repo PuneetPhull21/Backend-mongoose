@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var controller = require('../controller/controller');
+const verify  = require('../middleware/JWTverfiytoken,'); 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
   res.send('respond with a resource');
@@ -17,4 +18,5 @@ router.post('/login',controller.userlogin);
 //chatroom
 
 router.post("/chatroom",controller.chatroom);
+router.get("/allchatroom",controller.allchatrooms);  
 module.exports = router;
