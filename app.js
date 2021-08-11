@@ -8,6 +8,7 @@ var logger = require('morgan');
 require('./config/databaseconfig');
 require('./model/UserModel');
 require('./model/Chatroom');
+require('./model/message');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');

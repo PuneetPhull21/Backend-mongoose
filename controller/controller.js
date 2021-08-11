@@ -1,11 +1,11 @@
 require("../config/databaseconfig");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+require("../config/Passport");
 var User = mongoose.model("user");
-const Chatroom = mongoose.model("chat");
-const passport = require('passport');
-const jwt = require('jsonwebtoken');
-require('../config/Passport');
+var Chatroom = mongoose.model("chatroom");
+const passport = require("passport");
+const jwt = require("jsonwebtoken");
 
 module.exports.newuser = async (req, res) => {
   const password = req.body.password;
@@ -112,53 +112,51 @@ module.exports.deleteuser = (req, res) => {
 };
 
 module.exports.chatroom = async (req, res) => {
-    try{
-  const chatroom_name = req.body.chatroom_name;
-  const chatroomexsist = await Chatroom.findOne({ chatroom_name });
-  if (chatroomexsist){
-     return res.status(401).send({
-          status:401,
-          message:"its is alerady exsists please try with another name",
-      })
-  }
-  const chatname = new Chatroom({
-    chatroom_name,
-  });
-
-  chatname.save().then((data) => {
-    return res.status(200).send({
-      status: 200,
-      data: data,
-      message: "Chatroom is created",
-    });
-  });
-}
-catch(error){
- return res.status(401).send({
-     status:400,
-     message:'There is some error',
-     err:error,
- })
-}
-};
-
-module.exports.allchatrooms = async(req, res) => {
   try {
-    const details = await Chatroom.find({});
-    return res.status(200).send({
-      status: 200,
-      message: "all the chatroom",
-      data:details,
+    const chatroom_name = req.body.chatroom_name;
+    const chatroomexsist = await Chatroom.findOne({ chatroom_name });
+    if (chatroomexsist) {
+      return res.status(401).send({
+        status: 401,
+        message: "its is alerady exsists please try with another name",
+      });
+    }
+    const chatname = new Chatroom({
+      chatroom_name,
     });
-  }
-  catch (error) {
-    return res.status(400).send({
-      status: 00,
+
+    chatname.save().then((data) => {
+      return res.status(200).send({
+        status: 200,
+        data: data,
+        message: "Chatroom is created",
+      });
+    });
+  } catch (error) {
+    return res.status(401).send({
+      status: 400,
+      message: "There is some error",
       err: error,
     });
   }
 };
 
+module.exports.fetchchatroom = async (req, res) => {
+  try {
+    const data = await Chatroom.find();
+    return res.status(200).json({
+      status: 200,
+      success: true,
+      data: data,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      status: 400,
+      success: false,
+      err: err,
+    });
+  }
+};
 //delete the chat room in the from db;
 
 module.exports.deletechatroom = async (req, res) => {
@@ -177,28 +175,29 @@ module.exports.deletechatroom = async (req, res) => {
   }
 };
 
-
-//login  api 
+//login  api
 exports.userlogin = async (req, res, next) => {
-    passport.authenticate('local', (err, user, info) => {
-      if (err) res.status(404).json({
-        status:400,
-          success:false,
-          err:err,
+  passport.authenticate("local", (err, user, info) => {
+    if (err)
+      res.status(404).json({
+        status: 400,
+        success: false,
+        err: err,
       });
-      if (user)
-        return res.status(200).json({
-          status:200,
-          success:true,
-          token: jwt.sign({ id: user.id }, "SECRETKEY007", {
-            expiresIn: "60m",
-          })
-        });
-      if (info) return res.status(401).json({
-        status:401,
-          success:false,
-          err:info,
+    if (user)
+      return res.status(200).json({
+        status: 200,
+        success: true,
+        token: jwt.sign({ id: user.id }, "SECRETKEY007", {
+          expiresIn: "60m",
+        }),
+        username: user.name,
       });
-    })(req, res, next);
-  };
-
+    if (info)
+      return res.status(401).json({
+        status: 401,
+        success: false,
+        err: info,
+      });
+  })(req, res, next);
+};

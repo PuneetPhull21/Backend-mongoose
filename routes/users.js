@@ -18,5 +18,5 @@ router.post('/login',controller.userlogin);
 //chatroom
 
 router.post("/chatroom",controller.chatroom);
-router.get("/allchatroom",controller.allchatrooms);  
+ 
 module.exports = router;

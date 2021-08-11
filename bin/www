@@ -7,6 +7,10 @@
 var app = require('../app');
 var debug = require('debug')('backendwithmongo:server');
 var http = require('http');
+const jwt = require('jsonwebtoken');
+const { options } = require('../routes');
+const mongoose = require('mongoose');
+const Message  = mongoose.model('message');
 
 
 /**
@@ -19,23 +23,55 @@ app.set('port', port);
 /**
  * Create HTTP server.
  */
-
+let roomid = '';
+options2={
+  cors:true,
+  origins:["http://localhost:4000"],
+ }
 var server = http.createServer(app);
-const io = require('socket.io')(server);
-io.use((socket,next)=>{
- const token = socket.handshake.query.token;
-  const payload = jwt.verify(token,"SECRETKEY007",(err,user)=>{
-            socket.userId = jwt.decode(token);
-            next();
-})
-})
-io.on('connection',(socket)=>{
-  console.log('connected',+ socket.userId);
+const io = require('socket.io')(server,options2);
 
-  socket.on('disconnected',()=>{
-    console.log('disconnected'+socket.userID);
+io.use(async(socket,next)=>{
+ const token = socket.handshake.query.token;
+   const payload = jwt.verify(token,"SECRETKEY007");
+            socket.userId = payload.id;            
+next()})
+
+ io.on('connection',(socket)=>{
+  
+    socket.on('JOIN_ROOM',(room)=>{
+      roomid = room;
+      socket.join(room);
+    })
+    socket.on('NEW_MESSAGE',(msg)=>{
+      io.to(roomid).emit("NEW_MESSAGE",msg);
+      const details = new Message ({
+        chatroom:msg.id,
+        user:msg.username,
+        msg:msg.message,
+      }) 
+      details.save();
+      console.log("details is add") ;           
+        }) 
+
+
+      socket.on("ALL_CHAT",async (msg)=>{
+       const chat  = await Message.find({chatroom:msg.id}).limit(10);
+       io.emit("ALL_CHAT",chat);
+         return chat  
+           
+      })
+
+      
+    
+  
+ 
+ socket.on('disconnect',()=>{
+   io.to(roomid).emit("user Disconnected",+socket.userId);
+    console.log('disconnected' +socket.userId);
   })
 })
+
 /**
  * Listen on provided port, on all network interfaces.
  */
